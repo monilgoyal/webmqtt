@@ -1,0 +1,59 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Document</title>
+    <script src="https://unpkg.com/mqtt/dist/mqtt.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/pako/2.0.4/pako.min.js"></script>
+</head>
+
+<body>
+    <img id="img" src="">
+</body>
+<script>
+    const host = 'ws://ip172-18-0-14-c7grl7fnjsv000c0guk0-9001.direct.labs.play-with-docker.com'
+    const options = {
+        username: "monil",
+        password: "monil",
+        keepalive: 60,
+        protocolId: 'MQTT',
+        protocolVersion: 4,
+        clean: true,
+        reconnectPeriod: 1000,
+        connectTimeout: 30 * 1000,
+        will: {
+            topic: '/world',
+            payload: 'Connection Closed abnormally..!',
+            qos: 0,
+            retain: false
+        },
+    }
+
+
+    console.log('Connecting mqtt client')
+    const client = mqtt.connect(host, options)
+
+    client.on('error', (err) => {
+        console.log('Connection error: ', err)
+        client.end()
+    })
+
+    client.on('reconnect', () => {
+        console.log('Reconnecting...')
+    })
+    client.on('connect', () => {
+        client.subscribe('/world', {
+            qos: 0
+        })
+    })
+    client.on('message', (topic, message, packet) => {
+        var image = pako.inflate(message);
+        var base64String = btoa(String.fromCharCode.apply(null, image));
+        document.getElementById('img').src = "data:image/jpg;base64," + base64String
+    })
+</script>
+
+</html>
